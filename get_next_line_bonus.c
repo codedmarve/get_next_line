@@ -88,25 +88,25 @@ char	*refresh(char *str, char *buffer)
 
 char	*get_next_line(int fd)
 {
-	static char	buffer[BUFFER_SIZE + 1];
+	static char	buffer[1024][BUFFER_SIZE + 1];
 	char		*str;
 	int			bytes;
 
 	str = NULL;
 	if (BUFFER_SIZE <= 0 || fd < 0)
 		return (NULL);
-	if (buffer[0])
-		str = ft_strdup(buffer);
-	buffer[BUFFER_SIZE] = '\0';
+	if (buffer[fd][0])
+		str = ft_strdup(buffer[fd]);
+	buffer[fd][BUFFER_SIZE] = '\0';
 	while (!ft_strchr(str, '\n'))
 	{
-		bytes = read(fd, buffer, BUFFER_SIZE);
+		bytes = read(fd, buffer[fd], BUFFER_SIZE);
 		if (!bytes || bytes == -1)
 			break ;
 		if (bytes < BUFFER_SIZE)
-			buffer[bytes] = '\0';
-		str = refresh(str, buffer);
+			buffer[fd][bytes] = '\0';
+		str = refresh(str, buffer[fd]);
 	}
-	bufcpy(buffer);
+	bufcpy(buffer[fd]);
 	return (put_line(str, bytes));
 }
