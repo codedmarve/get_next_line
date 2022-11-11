@@ -12,101 +12,91 @@
 
 #include "get_next_line.h"
 
-void	bufcpy(char *buffer)
+void	*ft_memcpy(void *dst, const void *src, size_t n)
 {
-	char	cpy[BUFFER_SIZE + 1];
-	int		i;
+	char	*dst2;
+	char	*src2;
+	size_t	i;
 
-	cpy[BUFFER_SIZE] = 0;
-	i = 0;
-	while (i < BUFFER_SIZE)
-		cpy[i++] = '\0';
-	ft_strcpy(cpy, buffer);
-	i = 0;
-	while (buffer[i] != '\0' && buffer[i] != '\n')
-		i++;
-	if (i == BUFFER_SIZE && buffer[i] == 0)
-		buffer[0] = 0;
-	else
-		ft_strcpy(buffer, &cpy[i + 1]);
-	return ;
-}
-
-char	*put_line(char *str, int bytes)
-{
-	char	*line;
-	int		i;
-
-	if (!str)
+	if (n == 0 || dst == src)
+		return (dst);
+	if (!dst || !src)
 		return (NULL);
-	if (!bytes && !ft_strchr(str, '\n'))
-		return (str);
 	i = 0;
-	while (str[i] != '\n')
-		i++;
-	line = ft_substr(str, 0, i + 1);
-	free(str);
-	return (line);
-}
-
-char	*join(char *str, char *buffer)
-{
-	char	*s;
-	int		i;
-	int		j;
-
-	i = 0;
-	j = 0;
-	s = malloc(ft_strlen(str) + ft_strlen(buffer) + 1);
-	if (s == 0)
-		return (NULL);
-	if (str)
+	dst2 = (char *)dst;
+	src2 = (char *)src;
+	while (i < n)
 	{
-		while (str[i])
-		{
-			s[i] = str[i];
-			i++;
-		}
-		free(str);
+		dst2[i] = src2[i];
+		i++;
 	}
-	while (buffer[j])
-		s[i++] = buffer[j++];
-	s[i] = '\0';
-	return (s);
+	return ((void *)dst);
 }
 
-char	*refresh(char *str, char *buffer)
+void	ft_strcat(char *dst, const char *src)
 {
-	char	*new;
+	size_t	i;
+	size_t	dst_len;
 
-	if (!str)
-		new = join(0, buffer);
-	else
-		new = join(str, buffer);
-	return (new);
+	dst_len = ft_strlen(dst);
+	i = 0;
+	while (src[i] != 0)
+	{
+		dst[dst_len + i] = src[i];
+		i++;
+	}
+	dst[dst_len + i] = 0;
+}
+
+int	find_line(char **ret_line, char buff_store[], int *rd_bytes)
+{
+	char	*linepos;
+	int		i;
+
+	i = -1;
+	linepos = ft_strchr(buff_store, '\n');
+	if (linepos)
+	{
+		*ret_line = ft_calloc(sizeof(char), (linepos - buff_store) + 2);
+		ft_memcpy(*ret_line, buff_store, linepos - buff_store + 1);
+		while (linepos[++i + 1] != '\0')
+			buff_store[i] = linepos[i + 1];
+		ft_bzero(&buff_store[i], MAX_LINE - i);
+		return (1);
+	}
+	if (*rd_bytes == 0)
+	{
+		*ret_line = ft_calloc(sizeof(char), MAX_LINE + 1);
+		ft_memcpy(*ret_line, buff_store, MAX_LINE);
+		*rd_bytes = -1;
+	}
+	return (0);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	buffer[BUFFER_SIZE + 1];
-	char		*str;
-	int			bytes;
+	static char	buff_store[MAX_LINE];
+	char		*temp_storage;
+	char		*ret_line;
+	int			rd_bytes;
 
-	str = NULL;
-	if (BUFFER_SIZE <= 0 || fd < 0)
+	if (fd < 0 || fd > MAX_FD || BUFFER_SIZE <= 0 || BUFFER_SIZE > MAX_LINE)
 		return (NULL);
-	if (buffer[0])
-		str = ft_strdup(buffer);
-	buffer[BUFFER_SIZE] = '\0';
-	while (!ft_strchr(str, '\n'))
+	temp_storage = ft_calloc(sizeof(char), BUFFER_SIZE + 1);
+	rd_bytes = read(fd, temp_storage, BUFFER_SIZE);
+	ft_strcat(buff_store, temp_storage);
+	free(temp_storage);
+	if (rd_bytes < 0 || (rd_bytes <= 0 && buff_store[0] == '\0'))
 	{
-		bytes = read(fd, buffer, BUFFER_SIZE);
-		if (!bytes || bytes == -1)
-			break ;
-		if (bytes < BUFFER_SIZE)
-			buffer[bytes] = '\0';
-		str = refresh(str, buffer);
+		ft_bzero(buff_store, MAX_LINE);
+		return (NULL);
 	}
-	bufcpy(buffer);
-	return (put_line(str, bytes));
+	if (find_line (&ret_line, buff_store, &rd_bytes) == 1)
+		return (ret_line);
+	if (rd_bytes == -1)
+	{
+		ft_bzero(buff_store, MAX_LINE);
+		return (ret_line);
+	}
+	return (get_next_line(fd));
 }

@@ -40,29 +40,31 @@ char	*ft_strchr(const char *s, int c)
 	return (0);
 }
 
-char	*ft_substr(char const *s, unsigned int start, size_t i)
+void	ft_bzero(void *s, size_t n)
 {
-	char	*substr;
-	size_t	total_len;
-	size_t	counter;
+	size_t	i;
 
 	if (!s)
-		return (NULL);
-	if (!i || start >= (ft_strlen(s)))
-		return (ft_strdup(""));
-	substr = malloc(i * sizeof(char) + 1);
-	if (substr == 0)
-		return (NULL);
-	total_len = start + i;
-	counter = 0;
-	while (start < total_len)
+		return ;
+	i = 0;
+	while (i < n)
 	{
-		substr[counter] = s[start];
-		start++;
-		counter++;
+		*(unsigned char *)(s + i) = 0;
+		i++;
 	}
-	substr[counter] = 0;
-	return (substr);
+}
+
+void	*ft_calloc(size_t count, size_t size)
+{
+	void	*mem;
+	size_t	total;
+
+	total = count * size;
+	mem = malloc(total);
+	if (mem == NULL)
+		return (NULL);
+	ft_bzero(mem, total);
+	return (mem);
 }
 
 char	*ft_strcpy(char *dest, const char *src)
@@ -76,18 +78,5 @@ char	*ft_strcpy(char *dest, const char *src)
 		i++;
 	}
 	dest[i] = '\0';
-	return (dest);
-}
-
-char	*ft_strdup(const char *s1)
-{
-	char	*dest;
-	int		strlen;
-
-	strlen = ft_strlen(s1);
-	dest = malloc(strlen + 1);
-	if (dest == 0)
-		return (0);
-	ft_strcpy(dest, (char *)s1);
 	return (dest);
 }
