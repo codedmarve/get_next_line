@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: moduwole <moduwole@student.42wolfsburg.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/06/11 15:59:33 by moduwole          #+#    #+#             */
-/*   Updated: 2022/06/11 15:59:33 by moduwole         ###   ########.fr       */
+/*   Created: 2022/11/12 00:27:20 by moduwole          #+#    #+#             */
+/*   Updated: 2022/11/12 00:27:20 by moduwole         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 void	*ft_memcpy(void *dst, const void *src, size_t n)
 {
@@ -60,7 +60,7 @@ int	find_line(char **ret_line, char buff_store[], int *rd_bytes)
 
 char	*get_next_line(int fd)
 {
-	static char	buff_store[MAX_LINE];
+	static char	buff_store[MAX_FD][MAX_LINE];
 	char		*temp_storage;
 	char		*ret_line;
 	int			rd_bytes;
@@ -69,18 +69,18 @@ char	*get_next_line(int fd)
 		return (NULL);
 	temp_storage = ft_calloc(sizeof(char), BUFFER_SIZE + 1);
 	rd_bytes = read(fd, temp_storage, BUFFER_SIZE);
-	ft_strcat(buff_store, temp_storage);
+	ft_strcat(buff_store[fd], temp_storage);
 	free(temp_storage);
-	if (rd_bytes < 0 || (rd_bytes <= 0 && buff_store[0] == '\0'))
+	if (rd_bytes < 0 || (rd_bytes <= 0 && buff_store[fd][0] == '\0'))
 	{
-		ft_bzero(buff_store, MAX_LINE);
+		ft_bzero(buff_store[fd], MAX_LINE);
 		return (NULL);
 	}
-	if (find_line (&ret_line, buff_store, &rd_bytes) == 1)
+	if (find_line (&ret_line, buff_store[fd], &rd_bytes) == 1)
 		return (ret_line);
 	if (rd_bytes == -1)
 	{
-		ft_bzero(buff_store, MAX_LINE);
+		ft_bzero(buff_store[fd], MAX_LINE);
 		return (ret_line);
 	}
 	return (get_next_line(fd));
